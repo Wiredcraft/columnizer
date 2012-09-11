@@ -1,0 +1,165 @@
+<?php
+
+require_once 'phpQuery-onefile.php';
+/**
+ * @file
+ *
+ * - Sample string:
+ * @code
+ *  <p>This is the first paragraph. It may be HTML.</p>
+ *  <hr/>
+ *  <p>This is the second paragraph. It may be HTML.</p>
+ *  <hr/>
+ *  <p>This is the third paragraph. It may be HTML.</p>
+ *  <hr/>
+ *  <p>This is the forth paragraph. It may be HTML.</p>
+ * @endcode
+ *
+ * - Desired result:
+ *  @code
+ *    <div class="columns 4-columns">
+ *      <div class="column column-1">
+ *        <p>This is the first paragraph. It may be HTML.</p>
+ *      </div>
+ *      <div class="column column-2">
+ *        <p>This is the second paragraph. It may be HTML.</p>
+ *      </div>
+ *      <div class="column column-3">
+ *        <p>This is the third paragraph. It may be HTML.</p>
+ *      </div>
+ *      <div class="column column-4">
+ *        <p>This is the forth paragraph. It may be HTML.</p>
+ *      </div>
+ *    </div>
+ *  @endcode
+ *
+ *  - first need to count the occurance of the <p> delitered by <hr />
+ *  - rembember the content captured in the <p>
+ */
+
+
+/**
+ * Implements hook_filter_info()
+ */
+function easy_grid_filter_info() {
+  $filters['easy_grid'] = array(
+    'title' => t('Generate easy gird'),
+    'description' => t('Help you to generate some html'),
+    'process callback' => 'easy_grid_filter_easy_filter_process',
+    'tips callback' => 'easy_grid_filter_easy_filter_tips',
+  );
+
+  return $filters;
+}
+
+/**
+ * Process callback for filter 'easy_grid'
+ *
+ * Parse html with RegEx is not advised.
+ */
+function easy_grid_filter_easy_filter_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+
+//   // Add a temp wrapper for the whole text
+
+//   $dom = new DOMDocument();
+//   if ($dom->loadHTML($text)) {
+//     print_r($dom->getElementById('temp-dom'));
+//     $children = $dom->childNodes;
+//     print_r($children);
+
+//     foreach ($children as $child) {
+//       print_r($child->nodeName);
+//       print_r($child->nodeValue);
+//     }
+//   }
+//   else {
+//     drupal_set_message('Unable to create a DOMDocument object.');
+//   }
+
+  $dom = new DOMDocument();
+  $dom->preserveWhiteSpace = false;
+  $dom->loadHTML($text);
+
+  // At this moment:
+  // <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+  // <html><body>
+  // <p>This is the first paragraph. It may be HTML.</p>
+  // <hr>
+  // <p>This is the second paragraph. It may be HTML.</p>
+  // <hr>
+  // <p>This is the third paragraph. It may be HTML.</p>
+  // <hr>
+  // <p>This is the forth paragraph. It may be HTML.</p>
+  // </body></html>
+
+
+  dpm($dom->saveHTML());
+
+
+
+
+  return $text;
+}
+
+/**
+ * Tips callback for hook_filter_info().
+ */
+function easy_grid_filter_easy_filter_tips($filter, $format, $long) {
+
+
+}
+
+
+
+/**
+ *
+ */
+function dom_to_array($root) {
+  $result = array();
+
+  if ($root->hasAttributes()) {
+    $attrs = $root->attributes;
+
+    foreach ($attrs as $i => $attr) {
+      $result[$attr->name] = $attr->value;
+    }
+  }
+
+  $children = $root->childNodes;
+
+  if ($children->length == 1) {
+    $child = $children->item(0);
+
+    if ($child->nodeType == XML_TEXT_NODE) {
+      $result['_value'] = $child->nodeValue;
+
+      if (count($result) == 1) {
+        return $result['_value'];
+      }
+      else {
+        return $result;
+      }
+    }
+  }
+
+  $group = array();
+
+  for($i = 0; $i < $children->length; $i++) {
+    $child = $children->item($i);
+    if (!isset($result[$child->nodeName])) {
+      $result[$child->nodeName] = dom_to_array($child);
+    }
+    else {
+      if (!isset($group[$child->nodeName])) {
+        $tmp = $result[$child->nodeName];
+        $result[$child->nodeName] = array($tmp);
+        $group[$child->nodeName] = 1;
+      }
+
+      $result[$child->nodeName][] = dom_to_array($child);
+    }
+  }
+  return $result;
+}
+
+
