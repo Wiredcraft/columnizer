@@ -20,7 +20,3 @@ This module provide an simple input filter (for Drupal 7) to help generate more 
   </div>
 </div>
 ```
-
-Or　
-
-
