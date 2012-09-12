@@ -3,3 +3,4 @@ description = Help generate HTML markup for column style
 package = Input filters
 core = 7.x
 version = 7.x-1.0-dev
+file[] = lib/phpQuery-onefile.php

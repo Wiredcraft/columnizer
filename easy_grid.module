@@ -1,6 +1,6 @@
 <?php
 
-require_once 'phpQuery-onefile.php';
+require_once 'lib/phpQuery-onefile.php';
 /**
  * @file
  *
@@ -33,10 +33,12 @@ require_once 'phpQuery-onefile.php';
  *    </div>
  *  @endcode
  *
- *  - first need to count the occurance of the <p> delitered by <hr />
- *  - rembember the content captured in the <p>
+ *
+ *  @todo:
+ *  - Check the boundaries
+ *  - Only manipulate the continous <p><hr> element blocks
+ *
  */
-
 
 /**
  * Implements hook_filter_info()
@@ -54,52 +56,44 @@ function easy_grid_filter_info() {
 
 /**
  * Process callback for filter 'easy_grid'
- *
- * Parse html with RegEx is not advised.
  */
 function easy_grid_filter_easy_filter_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  $pq = phpQuery::newDocument($text);
 
-//   // Add a temp wrapper for the whole text
+  // Get the totoal number of direct <p> elements
+  $p_el_num = count($pq['> p']->elements);
 
-//   $dom = new DOMDocument();
-//   if ($dom->loadHTML($text)) {
-//     print_r($dom->getElementById('temp-dom'));
-//     $children = $dom->childNodes;
-//     print_r($children);
+  // Get all direct children
+  $children = $pq['> *'];
 
-//     foreach ($children as $child) {
-//       print_r($child->nodeName);
-//       print_r($child->nodeValue);
-//     }
-//   }
-//   else {
-//     drupal_set_message('Unable to create a DOMDocument object.');
-//   }
+  // Remove all the <hr> elements
+  foreach($children as $child) {
+    if ($child->tagName == 'hr') {
+      pq($child)->remove();
+      continue;
+    }
+  }
 
-  $dom = new DOMDocument();
-  $dom->preserveWhiteSpace = false;
-  $dom->loadHTML($text);
-
-  // At this moment:
-  // <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-  // <html><body>
-  // <p>This is the first paragraph. It may be HTML.</p>
-  // <hr>
-  // <p>This is the second paragraph. It may be HTML.</p>
-  // <hr>
-  // <p>This is the third paragraph. It may be HTML.</p>
-  // <hr>
-  // <p>This is the forth paragraph. It may be HTML.</p>
-  // </body></html>
+  // Rebuild new markup
+  // $outter_div = phpQuery::newDocument('<div/>');
+  // $outter_div['div']->addClass('columns')->addClass($p_el_num . '-columns');
 
 
-  dpm($dom->saveHTML());
+  // Wrap all the <p> elements
+  $pq['> p']->wrapAll('<div class="columns '. $p_el_num .'-columns" />');
+
+  // Wrap each single <p> element
 
 
+  $i = 1;
+  foreach($pq['div > p'] as $child) {
+    pq($child)->wrap('<div class="column column-' . $i .'" />');
+    $i++;
+  }
 
-
-  return $text;
+  return $pq->htmlOuter();
 }
+
 
 /**
  * Tips callback for hook_filter_info().
@@ -108,58 +102,3 @@ function easy_grid_filter_easy_filter_tips($filter, $format, $long) {
 
 
 }
-
-
-
-/**
- *
- */
-function dom_to_array($root) {
-  $result = array();
-
-  if ($root->hasAttributes()) {
-    $attrs = $root->attributes;
-
-    foreach ($attrs as $i => $attr) {
-      $result[$attr->name] = $attr->value;
-    }
-  }
-
-  $children = $root->childNodes;
-
-  if ($children->length == 1) {
-    $child = $children->item(0);
-
-    if ($child->nodeType == XML_TEXT_NODE) {
-      $result['_value'] = $child->nodeValue;
-
-      if (count($result) == 1) {
-        return $result['_value'];
-      }
-      else {
-        return $result;
-      }
-    }
-  }
-
-  $group = array();
-
-  for($i = 0; $i < $children->length; $i++) {
-    $child = $children->item($i);
-    if (!isset($result[$child->nodeName])) {
-      $result[$child->nodeName] = dom_to_array($child);
-    }
-    else {
-      if (!isset($group[$child->nodeName])) {
-        $tmp = $result[$child->nodeName];
-        $result[$child->nodeName] = array($tmp);
-        $group[$child->nodeName] = 1;
-      }
-
-      $result[$child->nodeName][] = dom_to_array($child);
-    }
-  }
-  return $result;
-}
-
-
