@@ -11,7 +11,7 @@ This module provide an simple input filter (for Drupal 7) to help generate more 
 
 ### The output:
 ```
-<div class="columns 2-columns">
+<div class="columns columns-2">
   <div class="column column-1">
   <p>This is the first paragraph. It may be HTML.</p>
   </div>
