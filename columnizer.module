@@ -60,11 +60,11 @@ function columnizer_filter_easy_filter_process($text, $filter, $format, $langcod
   $columns = explode('<hr>', $text);
   $count = count($columns);
   if ($count > 1) {
-    if ($i == 0) $output .= '<div class="columns '. $count .'-columns">'."\n";
+    if ($i == 0) $output .= '<div class="columns columns-'. $count .'">'."\n";
     for ($i = 0; $i < $count; $i++) {
       $output .= '<div class="column column-'. ($i + 1) .'">'."\n";
       $output .= $columns[$i]."\n";
-      $output .= '</div>'."\n"; 
+      $output .= '</div>'."\n";
     }
     $output .= '</div>'."\n";
   }
