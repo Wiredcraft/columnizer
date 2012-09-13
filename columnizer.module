@@ -1,0 +1,85 @@
+<?php
+
+/**
+ * @file
+ *
+ * - Sample string:
+ * @code
+ *  <p>This is the first paragraph. It may be HTML.</p>
+ *  <hr/>
+ *  <p>This is the second paragraph. It may be HTML.</p>
+ *  <hr/>
+ *  <p>This is the third paragraph. It may be HTML.</p>
+ *  <hr/>
+ *  <p>This is the forth paragraph. It may be HTML.</p>
+ * @endcode
+ *
+ * - Desired result:
+ *  @code
+ *    <div class="columns 4-columns">
+ *      <div class="column column-1">
+ *        <p>This is the first paragraph. It may be HTML.</p>
+ *      </div>
+ *      <div class="column column-2">
+ *        <p>This is the second paragraph. It may be HTML.</p>
+ *      </div>
+ *      <div class="column column-3">
+ *        <p>This is the third paragraph. It may be HTML.</p>
+ *      </div>
+ *      <div class="column column-4">
+ *        <p>This is the forth paragraph. It may be HTML.</p>
+ *      </div>
+ *    </div>
+ *  @endcode
+ */
+
+/**
+ * Implements hook_filter_info()
+ */
+function columnizer_filter_info() {
+  $filters['columnizer'] = array(
+    'title' => t('Generate columns markup'),
+    'description' => t('Help you to generate wrapping markup for columns'),
+    'process callback' => 'columnizer_filter_easy_filter_process',
+    'tips callback' => 'columnizer_filter_easy_filter_tips',
+  );
+
+  return $filters;
+}
+
+/**
+ * Process callback for filter 'columnizer'
+ */
+function columnizer_filter_easy_filter_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  // Normalize the text so that we only deal with <hr>
+  $search = array('<hr/>', '<hr />', '<hr >');
+  $text = str_replace($search, '<hr>', $text);
+
+  // Split our text into columns and build the proper HTML output
+  $output = '';
+  $columns = explode('<hr>', $text);
+  $count = count($columns);
+  if ($count > 1) {
+    if ($i == 0) $output .= '<div class="columns '. $count .'-columns">'."\n";
+    for ($i = 0; $i < $count; $i++) {
+      $output .= '<div class="column column-'. ($i + 1) .'">'."\n";
+      $output .= $columns[$i]."\n";
+      $output .= '</div>'."\n"; 
+    }
+    $output .= '</div>'."\n";
+  }
+  else {
+    $output = $text;
+  }
+
+  return $output;
+}
+
+
+/**
+ * Tips callback for hook_filter_info().
+ */
+function columnizer_filter_easy_filter_tips($filter, $format, $long) {
+
+
+}

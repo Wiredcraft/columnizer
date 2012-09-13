@@ -1,0 +1,11 @@
+name = Columnnizer filter
+description = Helps you generate HTML wrapper for columns using the "hr" tag
+core = 7.x
+package = Features
+php = 5.2.4
+version = 7.x-1.0-dev
+project = columnizer
+dependencies[] = columnizer
+dependencies[] = features
+features[features_api][] = api:1
+features[filter][] = columnizer
